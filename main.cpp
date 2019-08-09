@@ -9,11 +9,16 @@
 #include <QDebug>
 #include <QString>
 #include <QStringList>
+#include <QElapsedTimer>
 
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+
+    //Time how long it takes
+    QElapsedTimer timer;
+    timer.start();
 
 
     //Betas from somewhere
@@ -54,7 +59,6 @@ int main(int argc, char *argv[])
         //{0,1,0,1}, //Y*T
         //{0,0,1,1} //o*T
     };
-
 
 
 
@@ -143,7 +147,7 @@ int main(int argc, char *argv[])
         }
         output_file.close();
     }
-    std::cout<<"Done"<<"\n";
+    std::cout<<"Completed in: "<<timer.nsecsElapsed()<<" ns\n";
 
     return a.exec();
 }
