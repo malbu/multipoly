@@ -7,6 +7,8 @@
 #include <cassert>
 #include <qfile.h>
 #include <QDebug>
+#include <QString>
+#include <QStringList>
 
 
 int main(int argc, char *argv[])
@@ -33,30 +35,25 @@ int main(int argc, char *argv[])
                              };
 
 
-
-
-
-
-
     //Polynomial Expression
     //generated with four indeterminates
     //Beta1 paired with X vector and so on
     std::vector<std::vector<double>> poly_expression{
-                                                 {1,0,0,0}, //X
-                                                 {0,1,0,0}, //Y
-                                                 {0,0,1,0}, //o for Orderline
-                                                 {0,0,0,1}, //T
-                                                 {2,0,0,0}, //X^2
-                                                 {0,2,0,0}, //Y^2
-                                                 {0,0,2,0}, //o^2
-                                                 {0,0,0,2} //T^2
-                                                 //{1,1,0,0}, //X*Y
-                                                 //{1,0,1,0}, //X*o
-                                                 //{1,0,0,1}, //X*T
-                                                 //{0,1,1,0}, //Y*o
-                                                 //{0,1,0,1}, //Y*T
-                                                 //{0,0,1,1} //o*T
-                                                 };
+        {1,0,0,0}, //X
+        {0,1,0,0}, //Y
+        {0,0,1,0}, //o for Orderline
+        {0,0,0,1}, //T
+        {2,0,0,0}, //X^2
+        {0,2,0,0}, //Y^2
+        {0,0,2,0}, //o^2
+        {0,0,0,2} //T^2
+        //{1,1,0,0}, //X*Y
+        //{1,0,1,0}, //X*o
+        //{1,0,0,1}, //X*T
+        //{0,1,1,0}, //Y*o
+        //{0,1,0,1}, //Y*T
+        //{0,0,1,1} //o*T
+    };
 
 
 
@@ -66,6 +63,8 @@ int main(int argc, char *argv[])
     //Assemble the polynomial
     //Starting with constant beta term
 
+
+    //Up to four indeterminates
     poly<4, double> temperature_model =  betas.at(0);
 
 
@@ -101,9 +100,50 @@ int main(int argc, char *argv[])
     double evaluated = temperature_model(946.1754)(-162.6883)(16.0)(0.0);
     std::cout<<"Evaluated:"<<evaluated<<"\n";
 
+    std::cout<<"Trying to open data file"<<"\n";
+    //Open file with data
 
-    //Open file with data and read into 2d vector
+    double datapoint_evaluated;
+    QVector<double> model_corrected_data;
 
+    QFile data_file(QString("./first_test_data.txt"));
+
+    if(data_file.open(QIODevice::ReadOnly))
+    {
+        QTextStream stream(&data_file);
+        QString line=stream.readLine();
+        while(!line.isNull()){
+            QStringList split_line=line.split('\t');
+            //debugging
+            //std::cout<<line.toStdString()<<"\n";
+
+
+            //Plugging in each line from file
+            //Temperature is 0 for now.
+            double X_data=split_line.at(0).toDouble();
+            double Y_data=split_line.at(1).toDouble();
+            double order_Line=split_line.at(2).toDouble();
+            datapoint_evaluated=temperature_model(X_data)(Y_data)(order_Line)(0.0);
+            model_corrected_data.push_back(datapoint_evaluated);
+            line=stream.readLine();
+        }
+        data_file.close();
+    }
+    std::cout<<"Generated corrected vector"<<"\n";
+
+    std::cout<<"Writing to File"<<"\n";
+
+    QFile output_file(QString("./corrected_data.txt"));
+    if(output_file.open(QFile::ReadWrite|QFile::Text))
+    {
+        QTextStream out_stream(&output_file);
+        for (QVector<double>::iterator iter = model_corrected_data.begin(); iter != model_corrected_data.end(); iter++){
+            out_stream << *iter;
+            out_stream <<"\n";
+        }
+        output_file.close();
+    }
+    std::cout<<"Done"<<"\n";
 
     return a.exec();
 }
