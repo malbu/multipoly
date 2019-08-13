@@ -22,7 +22,7 @@ class poly;
     polynomial.
 
   * Moreover, it has basic arithmetic, i.e. addition, subtraction, multiplication; this is realized
-    via operator overloading. Assignment and comparism operators are also provided.
+    via operator overloading. Assignment and compare operators are also included.
 
   * Polynomials have a degree function degree(), returning the degree as a polynomial in the first
     indeterminate, as well as a function leading(), returning the leading term (which is of type

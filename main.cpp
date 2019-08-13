@@ -22,9 +22,10 @@ int main(int argc, char *argv[])
 
 
     //Betas from somewhere
+    //TODO: This needs to come from DB.
+
+
     //generated for now
-    //Beta0=1
-    //test vector
     //std::vector<double> betas{1,2,3,4,5,6,7,8,9,10,11,12,13,14};
 
     //betas from Greger
@@ -40,9 +41,12 @@ int main(int argc, char *argv[])
                              };
 
 
-    //Polynomial Expression
-    //generated with four indeterminates
+    //Polynomial Expression generated with four indeterminates
+    //See note below for increasing number of indeterminates
     //Beta1 paired with X vector and so on
+
+    //Per Greger, we won't be using the mixed indeterminate terms for now.
+    //TODO: Where/How to store this
     std::vector<std::vector<double>> poly_expression{
         {1,0,0,0}, //X
         {0,1,0,0}, //Y
@@ -60,6 +64,15 @@ int main(int argc, char *argv[])
         //{0,0,1,1} //o*T
     };
 
+    /*
+        Testing using 5 indeterinates. Because poly<n,T> has coeffients in poly<n-1,T>
+        and is implemented recursively, this is scalable. Constraint is that monomial
+        template for maximum number of indeterminates must exist at compile time */
+    //    std::vector<std::vector<double>> poly_expression{
+    //        {1,1,1,1,1},
+    //        {1,1,1,1,1}
+    //    };
+
 
 
 
@@ -71,6 +84,8 @@ int main(int argc, char *argv[])
     //Up to four indeterminates
     poly<4, double> temperature_model =  betas.at(0);
 
+    //Testing 5 indeterminates
+    //poly<5, double> temperature_model =  betas.at(0);
 
     //Add rest of terms
 
@@ -82,11 +97,19 @@ int main(int argc, char *argv[])
         int g=poly_expression[i-1].at(2);
         int h=poly_expression[i-1].at(3);
 
+        //Testing 5 indeterminates
+        //int j=poly_expression[i-1].at(4);
+
         //For Validation/Debugging
         std::cout<<"Term Number: "<<i<<" Term Exponents: "<<e<<" "<<f<<" "<<g<<" "<<h<<" "<<"\n";
         std::cout<<"Beta number: "<<betas[i]<<" Beta value: "<<betas.at(i)<<"\n";
         std::cout<<"Combined term: "<<betas.at(i)*Monomial<double>(e,f,g,h)<<"\n\n";
 
+        //Testing 5 indeterminates
+        //std::cout<<"Combined term: "<<betas.at(i)*Monomial<double>(e,f,g,h,j)<<"\n\n"
+
+
+        //temperature_model+=betas.at(i)*Monomial<double>(e,f,g,h,j);
 
         temperature_model+=betas.at(i)*Monomial<double>(e,f,g,h);
 
