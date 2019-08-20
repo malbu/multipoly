@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include "multipoly.h"
+#include "computetaylor.h"
 #include <iostream>
 #include <vector>
 #include <numeric>
@@ -12,6 +13,7 @@
 #include <QElapsedTimer>
 
 
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -19,6 +21,8 @@ int main(int argc, char *argv[])
     //Time how long it takes
     QElapsedTimer timer;
     timer.start();
+
+    ComputeTaylor taylor;
 
 
     //Betas from somewhere
@@ -82,6 +86,7 @@ int main(int argc, char *argv[])
 
 
     //Up to four indeterminates
+    //make sure its explicitly
     poly<4, double> temperature_model =  betas.at(0);
 
     //Testing 5 indeterminates
@@ -89,45 +94,45 @@ int main(int argc, char *argv[])
 
     //Add rest of terms
 
-    for(int i=1; i<poly_expression.size();i++){
+    for(int i=0; i<poly_expression.size();i++){
 
 
-        int e=poly_expression[i-1].at(0);
-        int f=poly_expression[i-1].at(1);
-        int g=poly_expression[i-1].at(2);
-        int h=poly_expression[i-1].at(3);
+        int e=poly_expression[i].at(0);
+        int f=poly_expression[i].at(1);
+        int g=poly_expression[i].at(2);
+        int h=poly_expression[i].at(3);
 
         //Testing 5 indeterminates
         //int j=poly_expression[i-1].at(4);
 
         //For Validation/Debugging
-        std::cout<<"Term Number: "<<i<<" Term Exponents: "<<e<<" "<<f<<" "<<g<<" "<<h<<" "<<"\n";
-        std::cout<<"Beta number: "<<betas[i]<<" Beta value: "<<betas.at(i)<<"\n";
-        std::cout<<"Combined term: "<<betas.at(i)*Monomial<double>(e,f,g,h)<<"\n\n";
+        //std::cout<<"Term Number: "<<i<<" Term Exponents: "<<e<<" "<<f<<" "<<g<<" "<<h<<" "<<"\n";
+        //std::cout<<"Beta number: "<<betas[i+1]<<" Beta value: "<<betas.at(i+1)<<"\n";
+        //std::cout<<"Combined term: "<<betas.at(i+1)*monomial<double>(e,f,g,h)<<"\n\n";
 
         //Testing 5 indeterminates
-        //std::cout<<"Combined term: "<<betas.at(i)*Monomial<double>(e,f,g,h,j)<<"\n\n"
+        //std::cout<<"Combined term: "<<betas.at(i)*monomial<double>(e,f,g,h,j)<<"\n\n"
 
 
-        //temperature_model+=betas.at(i)*Monomial<double>(e,f,g,h,j);
+        //temperature_model+=betas.at(i)*monomial<double>(e,f,g,h,j);
 
-        temperature_model+=betas.at(i)*Monomial<double>(e,f,g,h);
+        temperature_model+=betas.at(i+1)*monomial<double>(e,f,g,h);
 
 
-        std::cout<<"Taylor Series after adding "<<i<< " term: "<<temperature_model<<"\n\n\n";
+       // std::cout<<"Taylor Series after adding "<<i<< " term: "<<temperature_model<<"\n\n\n";
     }
 
 
 
     //Print out
-    std::cout<<"\n\n\n Taylor series final form: "<<temperature_model<<"\n";
+    //std::cout<<"\n\n\n Taylor series final form: "<<temperature_model<<"\n";
 
 
     //Evaluate the polynomial at a test point f(X,Y,o,T)
     double evaluated = temperature_model(946.1754)(-162.6883)(16.0)(0.0);
-    std::cout<<"Evaluated:"<<evaluated<<"\n";
+    //std::cout<<"Evaluated:"<<evaluated<<"\n";
 
-    std::cout<<"Trying to open data file"<<"\n";
+    //std::cout<<"Trying to open data file"<<"\n";
     //Open file with data
 
     double datapoint_evaluated;

@@ -58,7 +58,7 @@ class poly;
   is std::allocator<T> by default. This creates a polynomial of type poly<n, T, A> which consists of
   exactly one monomial X_0^{e_0} * ... * X_{n-1}^{e_{n-1}} having coefficient 1. One can create a
   polynomial for example using
-      poly<2, int> f = Monomial<int>(1, 2) + 3 * Monomial<int>(4, 5);
+      poly<2, int> f = monomial<int>(1, 2) + 3 * monomial<int>(4, 5);
   to obtain
       f = X_0 X_1^2 + 3 X_0^4 X_1^5.
 
@@ -1064,7 +1064,7 @@ public:
 };
 
 template<class T, class Alloc>
-inline poly<1, T, Alloc> Monomial(unsigned e)
+inline poly<1, T, Alloc> monomial(unsigned e)
 // Creates a monomial in one indeterminate.
 {
     poly<1, T, Alloc> p;
@@ -1073,7 +1073,7 @@ inline poly<1, T, Alloc> Monomial(unsigned e)
 }
 
 template<class T, class Alloc>
-inline poly<2, T, Alloc> Monomial(unsigned e, unsigned f)
+inline poly<2, T, Alloc> monomial(unsigned e, unsigned f)
 // Creates a monomial in two indeterminates.
 {
     poly<2, T, Alloc> p;
@@ -1082,7 +1082,7 @@ inline poly<2, T, Alloc> Monomial(unsigned e, unsigned f)
 }
 
 template<class T, class Alloc>
-inline poly<3, T, Alloc> Monomial(unsigned e, unsigned f, unsigned g)
+inline poly<3, T, Alloc> monomial(unsigned e, unsigned f, unsigned g)
 // Creates a monomial in three indeterminates.
 {
     poly<3, T, Alloc> p;
@@ -1091,7 +1091,7 @@ inline poly<3, T, Alloc> Monomial(unsigned e, unsigned f, unsigned g)
 }
 
 template<class T, class Alloc>
-inline poly<4, T, Alloc> Monomial(unsigned e, unsigned f, unsigned g, unsigned h)
+inline poly<4, T, Alloc> monomial(unsigned e, unsigned f, unsigned g, unsigned h)
 // Creates a monomial in four indeterminates.
 {
     poly<4, T, Alloc> p;
@@ -1100,7 +1100,7 @@ inline poly<4, T, Alloc> Monomial(unsigned e, unsigned f, unsigned g, unsigned h
 }
 
 template<class T, class Alloc>
-inline poly<5, T, Alloc> Monomial(unsigned e, unsigned f, unsigned g, unsigned h,unsigned i)
+inline poly<5, T, Alloc> monomial(unsigned e, unsigned f, unsigned g, unsigned h,unsigned i)
 // Creates a monomial in five indeterminates.
 {
     poly<5, T, Alloc> p;
@@ -1109,7 +1109,7 @@ inline poly<5, T, Alloc> Monomial(unsigned e, unsigned f, unsigned g, unsigned h
 }
 
 template<class T>
-inline poly<1, T, std::allocator<T> > Monomial(unsigned e)
+inline poly<1, T, std::allocator<T> > monomial(unsigned e)
 // Creates a monomial in one indeterminate.
 {
     poly<1, T, std::allocator<T> > p;
@@ -1118,7 +1118,7 @@ inline poly<1, T, std::allocator<T> > Monomial(unsigned e)
 }
 
 template<class T>
-inline poly<2, T, std::allocator<T> > Monomial(unsigned e, unsigned f)
+inline poly<2, T, std::allocator<T> > monomial(unsigned e, unsigned f)
 // Creates a monomial in two indeterminates.
 {
     poly<2, T, std::allocator<T> > p;
@@ -1127,7 +1127,7 @@ inline poly<2, T, std::allocator<T> > Monomial(unsigned e, unsigned f)
 }
 
 template<class T>
-inline poly<3, T, std::allocator<T> > Monomial(unsigned e, unsigned f, unsigned g)
+inline poly<3, T, std::allocator<T> > monomial(unsigned e, unsigned f, unsigned g)
 // Creates a monomial in three indeterminates.
 {
     poly<3, T, std::allocator<T> > p;
@@ -1136,7 +1136,7 @@ inline poly<3, T, std::allocator<T> > Monomial(unsigned e, unsigned f, unsigned 
 }
 
 template<class T>
-inline poly<4, T, std::allocator<T> > Monomial(unsigned e, unsigned f, unsigned g, unsigned h)
+inline poly<4, T, std::allocator<T> > monomial(unsigned e, unsigned f, unsigned g, unsigned h)
 // Creates a monomial in four indeterminates.
 {
     poly<4, T, std::allocator<T> > p;
@@ -1145,16 +1145,20 @@ inline poly<4, T, std::allocator<T> > Monomial(unsigned e, unsigned f, unsigned 
 }
 
 template<class T>
-inline poly<4, T, std::allocator<T> > Monomial_V(unsigned e, unsigned f, unsigned g, unsigned h)
+inline poly<4, T, std::allocator<T> > monomialVector(std::vector<unsigned> &termVec)
 // Creates a monomial in four indeterminates with vector input.
 {
+    unsigned int e = termVec.at(0);
+    unsigned int f = termVec.at(1);
+    unsigned int g = termVec.at(2);
+    unsigned int h = termVec.at(3);
     poly<4, T, std::allocator<T> > p;
     p[e][f][g][h] = 1;
     return p;
 }
 
 template<class T>
-inline poly<5, T, std::allocator<T> > Monomial(unsigned e, unsigned f, unsigned g, unsigned h, unsigned i)
+inline poly<5, T, std::allocator<T> > monomial(unsigned e, unsigned f, unsigned g, unsigned h, unsigned i)
 // Creates a monomial in five indeterminates.
 {
     poly<5, T, std::allocator<T> > p;
