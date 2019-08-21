@@ -81,6 +81,7 @@ public:
 
     std::vector<double> correctedOrderline;
 
+
     poly<4,double> temperatureModel;
 
     int numberOfIndeterminates;

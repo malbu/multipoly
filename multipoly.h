@@ -1157,6 +1157,21 @@ inline poly<4, T, std::allocator<T> > monomialVector(std::vector<unsigned> &term
     return p;
 }
 
+
+//template<class T>
+//inline poly<5, T, std::allocator<T> > monomialVector(std::vector<unsigned> &termVec)
+//// Creates a monomial in five indeterminates with vector input.
+//{
+//    unsigned int e = termVec.at(0);
+//    unsigned int f = termVec.at(1);
+//    unsigned int g = termVec.at(2);
+//    unsigned int h = termVec.at(3);
+//    unsigned int i = termVec.at(4);
+//    poly<5, T, std::allocator<T> > p;
+//    p[e][f][g][h][i] = 1;
+//    return p;
+//}
+
 template<class T>
 inline poly<5, T, std::allocator<T> > monomial(unsigned e, unsigned f, unsigned g, unsigned h, unsigned i)
 // Creates a monomial in five indeterminates.
@@ -1165,12 +1180,6 @@ inline poly<5, T, std::allocator<T> > monomial(unsigned e, unsigned f, unsigned 
     p[e][f][g][h][i] = 1;
     return p;
 }
-
-
-
-
-
-
 
 
 template<int n, class T, class Alloc>

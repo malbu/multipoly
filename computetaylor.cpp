@@ -4,6 +4,11 @@
 #include <functional>
 #include <algorithm>
 #include <bitset>
+#include <QSql>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QVariant>
+
 
 
 ComputeTaylor::ComputeTaylor()
@@ -11,17 +16,44 @@ ComputeTaylor::ComputeTaylor()
 
 
 
-    //Number of indeterminates
-    //This is much more likely to change than the max power of the exponent according to Greger.
-    numberOfIndeterminates=4;
+    // Number of indeterminates
+    // This is much more likely to change than the max power of the exponent according to Greger.
 
-    //Maxiumum exponent power
-    //According to Greger, this should really be hardcoded to 2 because it is unlikely ever to change
+    //From DB
+
+    QSqlDatabase db=QSqlDatabase::addDatabase("QSQLITE");
+
+    //db.setDatabaseName(":memory:");
+
+    db.setDatabaseName("computeTaylor.db");
+    bool openOk =db.open();
+
+    if(openOk){
+
+        QSqlQuery query("SELECT value from taylorexpansion");
+        while (query.next())
+        {
+            numberOfIndeterminates=query.value(0).toInt();
+            std::cout<<"Number of Indeterminants from DB is: "<<numberOfIndeterminates<<"\n";
+        }
+    }
+    // It can't be larger than 4 for now because poly<n,T> currently has n=4
+    // This is easily changed to accomodate a max of 5 but the
+    // monomialvector template also needs to be changed to handle 5 indeterminants
+    // See multipoly.h line 1161
+    if(numberOfIndeterminates>4){
+        std::cout<<"Number of Indeterminants is too high. Setting to default of 4";
+        numberOfIndeterminates=4;
+    }
+
+
+    // Maxiumum exponent power
+    // According to Greger, this should really be hardcoded to 2 because it is unlikely ever to change
 
     maxTermExponent=2;
 
-    //Create the decimal vector for representing the exponents in polyexpression
-    //It is filled in with powers of 2 in descending order. The descensing order is due to how Greger and I defined the order before the implementation
+    // Create the decimal vector for representing the exponents in polyexpression
+    // It is filled in with powers of 2 in descending order. The descensing order is due to how Greger and I defined the order before the implementation
 
 
     std::vector<int> decimalVector;
@@ -42,19 +74,19 @@ ComputeTaylor::ComputeTaylor()
 }
 
 void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,bool includeNonBasisTerms){
-    //The pattern for the exponents for 4 indeterminates is
+    // The pattern for the exponents for 4 indeterminates is
     // 4 choose 1 ====> 0001,0010,0100,1000   these are the basis terms
     // 4 choose 1 multipled by 2 ====> 0002,0020,0200,2000  these are the quadratic basis terms
 
     // 4 choose2 2 ===> 1100,1010,1001,0110,0101,0011
 
-    //Calculate the binomial coefficients n!/(k!(n-k)!)
-    //n is the maximum number of indeterminates; k is capped to maximum power of exponent
+    // Calculate the binomial coefficients n!/(k!(n-k)!)
+    // n is the maximum number of indeterminates; k is capped to maximum power of exponent
 
     std::vector<char> polynomialExpression;
     std::vector<int> integerPolynomialExpression;
 
-    //Non-basis terms, i.e. terms created by 4 choose 2 combination have additional requiremenent of being optional
+    // Non-basis terms, i.e. terms created by 4 choose 2 combination have additional requiremenent of being optional
     int startIndexforPolyExpression;
     if(includeNonBasisTerms){
          startIndexforPolyExpression=1;
@@ -72,30 +104,47 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
         std::vector<int> exponentsVectorInt;
 
         exponentsVector=zeroPaddedBinaryConversion(combination);
-        //std::cout<<"Printing results of ZeroPaddedBinaryConversion\n";
-        for(int i=0;i<exponentsVector.size();i++){
-            //std::cout<<exponentsVector.at(i)<<"\n";
-            exponentsVectorInt.push_back(exponentsVector.at(i)-'0');
-            //std::cout<<"Char\n";
-            //std::cout<<exponentsVectorInt.at(i)<<"\n";
-        }
+//        //std::cout<<"Printing results of ZeroPaddedBinaryConversion\n";
+//        for(int i=0;i<exponentsVector.size();i++){
+//            //std::cout<<exponentsVector.at(i)<<"\n";
+//            exponentsVectorInt.push_back(exponentsVector.at(i)-'0');
+//            //std::cout<<"Char\n";
+//            //std::cout<<exponentsVectorInt.at(i)<<"\n";
+//        }
 
-        //Append to polynomialExpression
+        // Append to polynomialExpression
         polynomialExpression.insert(polynomialExpression.end(),exponentsVector.begin(),exponentsVector.end());
 
 
-        //We need the quadratic basis terms but they're just the same as
-        //4 choose 1 except scalar multipled by maxTermExponent, which is hardcoded to 2
+        // We need the quadratic basis terms but they're just the same as
+
         if(k==1){
-            std::transform(exponentsVectorInt.begin(), exponentsVectorInt.end(), exponentsVectorInt.begin(),
-                           std::bind(std::multiplies<int>(), std::placeholders::_1, maxTermExponent));
-            exponentsVector.clear();
-            //std::cout<<"After multiplication\n";
-            for(int i=0;i<exponentsVectorInt.size();i++){
-                //std::cout<<exponentsVectorInt.at(i);
-                exponentsVector.push_back('0'+exponentsVectorInt.at(i));
+
+
+            // 4 choose 1 except scalar multipled by maxTermExponent, which is hardcoded to 2
+
+
+//            std::transform(exponentsVectorInt.begin(), exponentsVectorInt.end(), exponentsVectorInt.begin(),
+//                           std::bind(std::multiplies<int>(), std::placeholders::_1, maxTermExponent));
+//            exponentsVector.clear();
+//            std::cout<<"After multiplication\n";
+//            for(int i=0;i<exponentsVectorInt.size();i++){
+//                //std::cout<<exponentsVectorInt.at(i);
+//                exponentsVector.push_back('0'+exponentsVectorInt.at(i));
+//            }
+
+
+
+            // Produces the same result as snippet above by increasing the char from 1 to maxTermExponent.
+            // Faster than multiplying by 2 because no additional conversions are needed
+
+            for(int i=0;i<exponentsVector.size();i++){
+                if(exponentsVector.at(i)=='1'){
+                    exponentsVector.at(i)='0'+maxTermExponent;
+
+                }
             }
-            //Append this quadratic basis vector to the main polynomial expression vector
+            // Append this quadratic basis vector to the main polynomial expression vector
             polynomialExpression.insert(polynomialExpression.end(),exponentsVector.begin(),exponentsVector.end());
 
         }
@@ -103,7 +152,7 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
 
 
 
-    //Convert to int vector
+    // Convert to int vector
     for(int i=0;i<polynomialExpression.size();i++){
         integerPolynomialExpression.push_back(polynomialExpression.at(i)-'0');
     }
@@ -115,7 +164,7 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
         std::cout<<integerPolynomialExpression.at(i)<<"\n";
     }
 
-    //Create the model based on the expression
+    // Create the model based on the expression
     createModel(integerPolynomialExpression);
 
 }
@@ -148,14 +197,14 @@ std::vector<char> ComputeTaylor::zeroPaddedBinaryConversion(std::vector<int> &de
 
 
 void ComputeTaylor::createModel(std::vector<int> polyExpression){
-    //This function creates a Temperature model from a polynomial expression
-    //currently stored in a 2D vector
+    // This function creates a Temperature model from a polynomial expression
+    // currently stored in a 2D vector
 
 
 
     temperatureModel= betas.at(0);
 
-    //Determine the number of terms based on the lenght of the expression
+    // Determine the number of terms based on the lenght of the expression
     int totalNumberofTerms=polyExpression.size()/numberOfIndeterminates;
     std::vector<unsigned int> monomialExponentsVector;
     for(int i=0;i<totalNumberofTerms;i++){
@@ -166,9 +215,9 @@ void ComputeTaylor::createModel(std::vector<int> polyExpression){
             std::cout<<"Explicit number "<<j+i*numberOfIndeterminates<<"\n";
         }
         //std::cout<<"testingtestingtesting\n";
-        //Create monomial term;
-        //Careful this betas term will throw a range error if theres no zeros for terms that don't
-        //exist
+        // Create monomial term;
+        // Careful this betas term will throw a range error if theres no zeros for terms that don't
+        // exist
         temperatureModel+=betas.at(i+1)*monomialVector<double>(monomialExponentsVector);
         monomialExponentsVector.clear();
         std::cout<<"polynomial after adding term "<<i<<" is "<<temperatureModel<<"\n";
