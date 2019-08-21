@@ -19,15 +19,8 @@ template <class It> unsigned createPolynomialExpressionTerm(It begin, It end){
 
     if (begin != end)
     {
-        //std::cout <<"test"<< *begin;
-        //unsigned test2;
+
         xored=*begin;
-
-
-
-
-        //std::cout<<"Before xored "<<xored<<"\n";
-
 
         ++r;
         for (++begin; begin != end; ++begin)
@@ -36,8 +29,6 @@ template <class It> unsigned createPolynomialExpressionTerm(It begin, It end){
 
             //bitwise xor to aid in translating to binary
             xored=xored^s;
-           // std::cout << " s " << s<<"\n";
-           // std::cout<< "Xor'd "<<xored<<"\n";
             ++r;
         }
     }
@@ -82,7 +73,7 @@ public:
     std::vector<double> correctedOrderline;
 
 
-    poly<4,double> temperatureModel;
+    poly<4,double> taylorPolynomial;
 
     int numberOfIndeterminates;
 
@@ -93,24 +84,22 @@ public:
 
     //Functor called for each combination
 
-    class combinationFunctor
+    class combinationFunc
     {
         unsigned len;
         std::uint64_t count;
         std::vector<int> combinations;
     public:
-        explicit combinationFunctor(unsigned l) : len(l), count(0),combinations(0) {}
+        explicit combinationFunc(unsigned l) : len(l), count(0),combinations(0) {}
 
         template <class It>
             bool operator()(It first, It last)  // called for each combination
             {
-                // count the number of times this is called
+                // Count the number of times this is called
                 ++count;
 
                 unsigned r= createPolynomialExpressionTerm(first,last);
-                //std::cout<<"r!!!"<<r<<"\n";
                 combinations.push_back(r);
-                //std::cout<<"\n";
                 return false;  // Don't break out of the loop
             }
 

@@ -19,7 +19,7 @@ ComputeTaylor::ComputeTaylor()
     // Number of indeterminates
     // This is much more likely to change than the max power of the exponent according to Greger.
 
-    //From DB
+    // From DB
 
     QSqlDatabase db=QSqlDatabase::addDatabase("QSQLITE");
 
@@ -34,7 +34,7 @@ ComputeTaylor::ComputeTaylor()
         while (query.next())
         {
             numberOfIndeterminates=query.value(0).toInt();
-            std::cout<<"Number of Indeterminants from DB is: "<<numberOfIndeterminates<<"\n";
+            //std::cout<<"Number of Indeterminants from DB is: "<<numberOfIndeterminates<<"\n";
         }
     }
     // It can't be larger than 4 for now because poly<n,T> currently has n=4
@@ -98,19 +98,13 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
         std::vector<int>combination=for_each_combination(decimalVector.begin(),
                                                          decimalVector.begin()+k,
                                                          decimalVector.end(),
-                                                         combinationFunctor(decimalVector.size()));
+                                                         combinationFunc(decimalVector.size()));
 
         std::vector<char> exponentsVector;
         std::vector<int> exponentsVectorInt;
 
         exponentsVector=zeroPaddedBinaryConversion(combination);
-//        //std::cout<<"Printing results of ZeroPaddedBinaryConversion\n";
-//        for(int i=0;i<exponentsVector.size();i++){
-//            //std::cout<<exponentsVector.at(i)<<"\n";
-//            exponentsVectorInt.push_back(exponentsVector.at(i)-'0');
-//            //std::cout<<"Char\n";
-//            //std::cout<<exponentsVectorInt.at(i)<<"\n";
-//        }
+
 
         // Append to polynomialExpression
         polynomialExpression.insert(polynomialExpression.end(),exponentsVector.begin(),exponentsVector.end());
@@ -122,17 +116,6 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
 
 
             // 4 choose 1 except scalar multipled by maxTermExponent, which is hardcoded to 2
-
-
-//            std::transform(exponentsVectorInt.begin(), exponentsVectorInt.end(), exponentsVectorInt.begin(),
-//                           std::bind(std::multiplies<int>(), std::placeholders::_1, maxTermExponent));
-//            exponentsVector.clear();
-//            std::cout<<"After multiplication\n";
-//            for(int i=0;i<exponentsVectorInt.size();i++){
-//                //std::cout<<exponentsVectorInt.at(i);
-//                exponentsVector.push_back('0'+exponentsVectorInt.at(i));
-//            }
-
 
 
             // Produces the same result as snippet above by increasing the char from 1 to maxTermExponent.
@@ -160,9 +143,9 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
 
     //Print vector for debugging
 
-    for(int i=0; i<integerPolynomialExpression.size();i++){
-        std::cout<<integerPolynomialExpression.at(i)<<"\n";
-    }
+//    for(int i=0; i<integerPolynomialExpression.size();i++){
+//        std::cout<<integerPolynomialExpression.at(i)<<"\n";
+//    }
 
     // Create the model based on the expression
     createModel(integerPolynomialExpression);
@@ -170,21 +153,21 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
 }
 
 std::vector<char> ComputeTaylor::zeroPaddedBinaryConversion(std::vector<int> &decimalVector){
-    //Convert to binary and add leading zeros so length matches number of indeterminates
-    //This is to aid creation of monomial terms when using multipoly library
+    // Convert to binary and add leading zeros so length matches number of indeterminates
+    // This is to aid creation of monomial terms when using multipoly library
     std::vector<char> binaryValue;
 
         for(int i=0; i<decimalVector.size();i++){
             std::string individualDigitConvertedtoBinary;
-            //std::cout<<decimalVector.at(i)<<"\n";
-            //Binary Conversion
-            individualDigitConvertedtoBinary=(std::bitset<sizeof(decimalVector.at(i))>(decimalVector.at(i))).to_string();
-            //std::cout<<"Printing individualDigitConvertedtoBinary"<<individualDigitConvertedtoBinary<<"\n";
 
-            //Push individual digits
+            // Binary Conversion
+            individualDigitConvertedtoBinary=(std::bitset<sizeof(decimalVector.at(i))>(decimalVector.at(i))).to_string();
+
+
+            // Push individual digits
             for(auto &&c:individualDigitConvertedtoBinary){
                 binaryValue.push_back(c);
-             //   std::cout<<c<<"\n";
+
             }
 
         }
@@ -202,63 +185,52 @@ void ComputeTaylor::createModel(std::vector<int> polyExpression){
 
 
 
-    temperatureModel= betas.at(0);
+    taylorPolynomial= betas.at(0);
 
     // Determine the number of terms based on the lenght of the expression
     int totalNumberofTerms=polyExpression.size()/numberOfIndeterminates;
     std::vector<unsigned int> monomialExponentsVector;
     for(int i=0;i<totalNumberofTerms;i++){
-        std::cout<<"Term number "<<i<<"\n";
+        //std::cout<<"Term number "<<i<<"\n";
         for(int j=0;j<numberOfIndeterminates;j++){
             monomialExponentsVector.push_back(polyExpression.at(j+i*numberOfIndeterminates));
-            std::cout<<"testing "<<polyExpression.at(j+i*numberOfIndeterminates)<<"\n";
-            std::cout<<"Explicit number "<<j+i*numberOfIndeterminates<<"\n";
+
         }
-        //std::cout<<"testingtestingtesting\n";
+
         // Create monomial term;
         // Careful this betas term will throw a range error if theres no zeros for terms that don't
         // exist
-        temperatureModel+=betas.at(i+1)*monomialVector<double>(monomialExponentsVector);
+        taylorPolynomial+=betas.at(i+1)*monomialVector<double>(monomialExponentsVector);
         monomialExponentsVector.clear();
-        std::cout<<"polynomial after adding term "<<i<<" is "<<temperatureModel<<"\n";
-
 
     }
 
     std::cout<<"Total number of terms is: "<<totalNumberofTerms<<"\n";
-
-//   temperatureModel= betas.at(0);
-
-//    for(int i=0; i<polyExpression.size();i++){
-
-//        //Create monomial term
-//        //temperatureModel+=betas.at(i+1)*monomialVector<double>(polyexpression[i]);
-//    }
 
     displayTaylorPolynomial();
 
 }
 
 std::vector<double> ComputeTaylor::applyModelToOrder(std::vector<std::vector<double>> &orderVector){
-    //For now the storage container is a 2D vector like:
-    //{x0,x1,x2....xn},
-    //{y1,y2,y3....yn},
-    //{o1,o2,o3....on}
+    // For now the storage container is a 2D vector like:
+    // {x0,x1,x2....xn},
+    // {y1,y2,y3....yn},
+    // {o1,o2,o3....on}
     double evaluatedCorrection;
     std::vector<double> correctedOrderLine;
     for(int i=0;i<orderVector.size();i++){
 
-       //Calculate the correction and stuff vector
-        evaluatedCorrection=temperatureModel(orderVector[i].at(0))(orderVector[i].at(1))(orderVector[i].at(2))(orderVector[i].at(3));
+       // Calculate the correction and stuff vector
+        evaluatedCorrection=taylorPolynomial(orderVector[i].at(0))(orderVector[i].at(1))(orderVector[i].at(2))(orderVector[i].at(3));
         correctedOrderLine.push_back(evaluatedCorrection);
     }
     return correctedOrderLine;
 }
 
 bool ComputeTaylor::displayTaylorPolynomial(){
-    //Debugging function
+    // Debugging function
 
-    std::cout<<"The Taylor polynomial is: "<<temperatureModel;
+    std::cout<<"The Taylor polynomial is: "<<taylorPolynomial;
 }
 
 
