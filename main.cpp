@@ -11,6 +11,8 @@
 #include <QString>
 #include <QStringList>
 #include <QElapsedTimer>
+#include "temperaturecorrection.h"
+#include "common/math/polynomials/singleVariablePolynomial.h"
 
 
 
@@ -20,9 +22,10 @@ int main(int argc, char *argv[])
 
     //Time how long it takes
     QElapsedTimer timer;
+    Rigaku::Common::Math::Polynomials::SingleVariablePolynomial test;
     timer.start();
-
-    ComputeTaylor taylor;
+    TemperatureCorrection correction;
+    //ComputeTaylor taylor;
 
     std::cout<<"\nCompleted in: "<<timer.nsecsElapsed()<<" ns\n";
 

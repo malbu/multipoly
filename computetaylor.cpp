@@ -67,7 +67,7 @@ void ComputeTaylor::initTaylorPoly(){
 
     std::vector<int> decimalVector;
 
-    for(int i=numberOfIndeterminates; i>=1;i--){
+    for (int i=numberOfIndeterminates; i>=1;i--){
         decimalVector.push_back(pow(2,(i-1)));
         //debugging
         //std::cout<<"Just pushed back: "<<pow(2,(i-1))<<"\n";
@@ -91,7 +91,7 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
     // n is the maximum number of indeterminates; k is capped to maximum power of exponent
 
     std::vector<char> polynomialExpression;
-    std::vector<int> integerPolynomialExpression;
+    integerPolynomialExpression.clear();
 
     // Non-basis terms, i.e. terms created by 4 choose 2 combination have additional requiremenent of being optional
     int startIndexforPolyExpression;
@@ -101,7 +101,7 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
         startIndexforPolyExpression=2;
     }
 
-    for(int k=startIndexforPolyExpression;k<=maxTermExponent;k++){
+    for (int k=startIndexforPolyExpression;k<=maxTermExponent;k++){
         std::vector<int>combination=for_each_combination(decimalVector.begin(),
                                                          decimalVector.begin()+k,
                                                          decimalVector.end(),
@@ -127,7 +127,7 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
 
             // Same as multiplication by maxTermExponet but faster because no additional
             // conversions are needed
-            for(int i=0;i<exponentsVector.size();i++){
+            for (int i=0;i<exponentsVector.size();i++){
                 if(exponentsVector.at(i)=='1'){
                     exponentsVector.at(i)='0'+maxTermExponent;
 
@@ -142,19 +142,19 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
 
 
     // Convert to int vector
-    for(int i=0;i<polynomialExpression.size();i++){
+    for (int i=0;i<polynomialExpression.size();i++){
         integerPolynomialExpression.push_back(polynomialExpression.at(i)-'0');
     }
 
 
     //Print vector for debugging
 
-    //    for(int i=0; i<integerPolynomialExpression.size();i++){
+    //    for (int i=0; i<integerPolynomialExpression.size();i++){
     //        std::cout<<integerPolynomialExpression.at(i)<<"\n";
     //    }
 
     // Create the model based on the expression
-    createTaylorPolynomial(integerPolynomialExpression);
+    //createTaylorPolynomial(integerPolynomialExpression);
 
 }
 
@@ -163,7 +163,7 @@ std::vector<char> ComputeTaylor::zeroPaddedBinaryConversion(std::vector<int> &de
     // This is to aid creation of monomial terms when using multipoly.h
     std::vector<char> binaryValue;
 
-    for(int i=0; i<decimalVector.size();i++){
+    for (int i=0; i<decimalVector.size();i++){
         std::string individualDigitConvertedtoBinary;
 
         // Binary Conversion
@@ -171,7 +171,7 @@ std::vector<char> ComputeTaylor::zeroPaddedBinaryConversion(std::vector<int> &de
 
 
         // Push individual digits
-        for(auto &&c:individualDigitConvertedtoBinary){
+        for (auto &&c:individualDigitConvertedtoBinary){
             binaryValue.push_back(c);
 
         }
@@ -185,23 +185,27 @@ std::vector<char> ComputeTaylor::zeroPaddedBinaryConversion(std::vector<int> &de
 
 
 
-void ComputeTaylor::createTaylorPolynomial(std::vector<int> polyExpression){
+void ComputeTaylor::createTaylorPolynomial(){
     // Creates a polynomial from a polynomial expression
     // Represented as: beta0+beta1*monomial1+beta2*monomial2...
     // Monomials have the indeterminate variables as input with their exponents
     // being in polyExpression
 
+//    if(integerPolynomialExpression.size()!=betas.size()+1){
+//        std::cout<<"Polynomial expression and/or betas have bad dimensions \n";
+//        return;
+//    }
 
 
     taylorPolynomial= betas.at(0);
 
     // Determine the number of terms based on the lenght of the expression
-    int totalNumberofTerms=polyExpression.size()/numberOfIndeterminates;
+    int totalNumberofTerms=integerPolynomialExpression.size()/numberOfIndeterminates;
     std::vector<unsigned int> monomialExponentsVector;
-    for(int i=0;i<totalNumberofTerms;i++){
+    for (int i=0;i<totalNumberofTerms;i++){
         //std::cout<<"Term number "<<i<<"\n";
-        for(int j=0;j<numberOfIndeterminates;j++){
-            monomialExponentsVector.push_back(polyExpression.at(j+i*numberOfIndeterminates));
+        for (int j=0;j<numberOfIndeterminates;j++){
+            monomialExponentsVector.push_back(integerPolynomialExpression.at(j+i*numberOfIndeterminates));
 
         }
 
@@ -225,7 +229,7 @@ std::vector<double> ComputeTaylor::applyModelToOrder(std::vector<std::vector<dou
     // {o1,o2,o3....on}
     double evaluatedCorrection;
     std::vector<double> correctedOrderLine;
-    for(int i=0;i<orderVector.size();i++){
+    for (int i=0;i<orderVector.size();i++){
 
         // Calculate the correction and stuff vector
         evaluatedCorrection=taylorPolynomial(orderVector[i].at(0))(orderVector[i].at(1))(orderVector[i].at(2))(orderVector[i].at(3));
@@ -240,6 +244,15 @@ bool ComputeTaylor::displayTaylorPolynomial(){
     std::cout<<"The Taylor polynomial is: "<<taylorPolynomial;
 }
 
-//bool ComputeTaylor::set
+bool ComputeTaylor::updateBeta(std::vector<double> beta){
+
+    // TODO There are better ways to create the final taylorPolynomial than
+    // doing it this way
+
+    betas.clear();
+    //Copy it
+    betas.assign(beta.begin(),beta.end());
+
+}
 
 
