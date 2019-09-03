@@ -23,7 +23,9 @@ public:
     void storePixelandWavelengthOrderTable();
     void retrieveBetas(int id);
     void calculateShifts();
-    QList<double> wavelengthInterface(double OL, double x);
+    std::vector<float> findWavelengthAndYValue(int OL, float x);
+
+    std::vector<float> findKClosestValue(std::vector<float> unsortedVector, float numberOfInterest, int k);
 
 
 
@@ -32,8 +34,8 @@ public:
 
 
 
-    std::vector<double> betasX;
-    std::vector<double> betasY;
+    std::vector<float> betasX;
+    std::vector<float> betasY;
 
 
 
@@ -41,23 +43,23 @@ public:
 
     //Storage container in the form
     //QMap<order,vector<pair<Yvalue,Wavelength>>
-    QMap<int, std::vector<pair<double,double>>> unCorrected;
+    QMap<int, std::vector<pair<float,float>>> unCorrected;
 
-    QMap<int,std::vector<double>> wavelength;
+    QMap<int,std::vector<float>> wavelength;
 
-    QMap<int,std::vector<double>> pixelY;
+    QMap<int,std::vector<float>> pixelY;
 
 
-    QMap<int,std::vector<double>> correctedX;
-    QMap<int,std::vector<double>> correctedY;
+    QMap<int,std::vector<float>> correctedX;
+    QMap<int,std::vector<float>> correctedY;
 
 
     // Variables
 
-    double X_mean=2048/2.0;
-    double Y_mean=512/2.0;
-    double OL_mean=21;
-    double temperature_mean=25;
+    float X_mean=2048/2.0;
+    float Y_mean=512/2.0;
+    float OL_mean=21;
+    float temperature_mean=25;
 
 
 };

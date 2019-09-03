@@ -211,7 +211,7 @@ void ComputeTaylor::createTaylorPolynomial(){
 
         // Create monomial term;
         // TODO put in check if number of betas is not as expected
-        taylorPolynomial+=betas.at(i+1)*monomialVector<double>(monomialExponentsVector);
+        taylorPolynomial+=betas.at(i+1)*monomialVector<float>(monomialExponentsVector);
         monomialExponentsVector.clear();
 
     }
@@ -222,13 +222,13 @@ void ComputeTaylor::createTaylorPolynomial(){
 
 }
 
-std::vector<double> ComputeTaylor::applyModelToOrder(std::vector<std::vector<double>> &orderVector){
+std::vector<float> ComputeTaylor::applyModelToOrder(std::vector<std::vector<float>> &orderVector){
     // For now the storage container is a 2D vector like:
     // {x0,x1,x2....xn},
     // {y1,y2,y3....yn},
     // {o1,o2,o3....on}
-    double evaluatedCorrection;
-    std::vector<double> correctedOrderLine;
+    float evaluatedCorrection;
+    std::vector<float> correctedOrderLine;
     for (int i=0;i<orderVector.size();i++){
 
         // Calculate the correction and stuff vector
@@ -244,7 +244,7 @@ bool ComputeTaylor::displayTaylorPolynomial(){
     std::cout<<"The Taylor polynomial is: "<<taylorPolynomial;
 }
 
-bool ComputeTaylor::updateBeta(std::vector<double> beta){
+bool ComputeTaylor::updateBeta(std::vector<float> beta){
 
     // TODO There are better ways to create the final taylorPolynomial than
     // doing it this way

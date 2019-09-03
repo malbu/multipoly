@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include "common/math/polynomials/singleVariablePolynomial.h"
+#include <queue>
 
 TemperatureCorrection::TemperatureCorrection()
 {
@@ -53,7 +54,7 @@ TemperatureCorrection::TemperatureCorrection()
         // All points must be doubles or floats for unwanted rounding to not occur
 
 
-        //double test=taylorPolynomialX.taylorPolynomial(946.1754)(-162.6883)(16.0)(0.0);
+        //float test=taylorPolynomialX.taylorPolynomial(946.1754)(-162.6883)(16.0)(0.0);
         //std::cout<<"Test eval: "<<test<<"\n";
 
         storePixelandWavelengthOrderTable();
@@ -79,15 +80,15 @@ void TemperatureCorrection::retrieveBetas(int id){
             query.exec("SELECT X from taylorcoefficients WHERE id='1'");
             while(query.next()){
                 //std::cout<<query.value(0).toFloat()<</*query.value(1).toFloat()<<query.value(2).toFloat()<<*/"\n";
-                betasX.push_back(query.value(0).toDouble());
+                betasX.push_back(query.value(0).toFloat());
             }
 
             // betasY
 
             query.exec("SELECT Y from taylorcoefficients WHERE id='1'");
             while(query.next()){
-                betasY.push_back(query.value(0).toDouble());
-                std::cout<<query.value(0).toDouble()<<"\n";
+                betasY.push_back(query.value(0).toFloat());
+                std::cout<<query.value(0).toFloat()<<"\n";
             }
 
         }
@@ -113,17 +114,17 @@ void TemperatureCorrection::storePixelandWavelengthOrderTable(){
 
                     //There should be 45 columns
 
-                    std::cout<<"The size of the row QStringList is: "<<split_line.size()<<"\n";
+                    //std::cout<<"The size of the row QStringList is: "<<split_line.size()<<"\n";
 
                     for(int i=0;i<split_line.size();i++){
-                        wavelength[i].push_back(split_line.at(i).toDouble());
+                        wavelength[i].push_back(split_line.at(i).toFloat());
                     }
 
                     //Plugging in each line from file
                     //Temperature is 0 for now.
-//                    double X_data=split_line.at(0).toDouble();
-//                    double Y_data=split_line.at(1).toDouble();
-//                    double order_Line=split_line.at(2).toDouble();
+//                    float X_data=split_line.at(0).toFloat();
+//                    float Y_data=split_line.at(1).toFloat();
+//                    float order_Line=split_line.at(2).toFloat();
 //                    datapoint_evaluated=temperature_model(X_data)(Y_data)(order_Line)(0.0);
 //                    model_corrected_data.push_back(datapoint_evaluated);
                     line=stream.readLine();
@@ -147,10 +148,10 @@ void TemperatureCorrection::storePixelandWavelengthOrderTable(){
 
                     //There should be 45 columns
 
-                    std::cout<<"The size of the row QStringList is: "<<split_line.size()<<"\n";
+                    //std::cout<<"The size of the row QStringList is: "<<split_line.size()<<"\n";
 
                     for(int i=0;i<split_line.size();i++){
-                        pixelY[i].push_back(split_line.at(i).toDouble());
+                        pixelY[i].push_back(split_line.at(i).toFloat());
                     }
 
 
@@ -161,13 +162,13 @@ void TemperatureCorrection::storePixelandWavelengthOrderTable(){
 
         //debugging
 
-        qDebug()<<pixelY;
-        qDebug()<<pixelY.size(); //45
-        qDebug()<<pixelY[0].size();
+        //qDebug()<<pixelY;
+        //qDebug()<<pixelY.size(); //45
+        //qDebug()<<pixelY[0].size();
 
-        std::vector<double> tempvec;
+        std::vector<float> tempvec;
 
-//        QMapIterator<int,std::vector<double>> i(pixelY);
+//        QMapIterator<int,std::vector<float>> i(pixelY);
 //        std::cout<<"printing the key\n";
 //        while(i.hasNext()){
 //            i.next();
@@ -193,40 +194,40 @@ void TemperatureCorrection::calculateShifts(){
 
     // Correction 1. X shift
     // taylorPolynomialX(X index value for order N)(Y value for order N)(OrderLine)(Temperature)
-    // The result of the above operation is in form QMap<order number, vector of 2048 doubles>
+    // The result of the above operation is in form QMap<order number, vector of 2048 floats>
 
 
     // Correction 2. Y shift
     // taylorPolynomialY(X index value for order N)(Y value for order N)(OrderLine)(Temperature)
-    // The result of the above operation is in form QMap<order number, vector of 2048 doubles>
+    // The result of the above operation is in form QMap<order number, vector of 2048 float>
 
-    std::vector<double> tempVec;
+    std::vector<float> tempVec;
     correctedX.clear();
     correctedY.clear();
 
-    QMapIterator<int,std::vector<double>> i(pixelY);
-    std::cout<<"printing the key\n";
+    QMapIterator<int,std::vector<float>> i(pixelY);
+    //std::cout<<"printing the key\n";
     while(i.hasNext()){
         i.next();
         tempVec=i.value(); //TODO is this copy needed?
         // Evaluate both model
-        double evalPointX;
-        double evalPointY;
+        float evalPointX;
+        float evalPointY;
         for(int j=0;j<tempVec.size();j++){
-            std::cout<<tempVec.at(j)<<"\n"; //value
-            std::cout<<j<<"\n";
+            //std::cout<<tempVec.at(j)<<"\n"; //value
+            //std::cout<<j<<"\n";
 
             //Correct X
             evalPointX=taylorPolynomialX.taylorPolynomial(j*1.0)(tempVec.at(j)*1.0)(i.key()*1.0)(0.0*1.0);
 
-            qDebug()<<"Printing out evalPointX: "<<evalPointX<<"\n";
+            //qDebug()<<"Printing out evalPointX: "<<evalPointX<<"\n";
 
             correctedX[i.key()].push_back(evalPointX);
 
 
             //Correct Y
             evalPointY=taylorPolynomialY.taylorPolynomial(j*1.0)(tempVec.at(j)*1.0)(i.key()*1.0)(0.0*1.0);
-            qDebug()<<"Printing out evalPointY: "<<evalPointY<<"\n";
+            //qDebug()<<"Printing out evalPointY: "<<evalPointY<<"\n";
             //taylorPolynomialX(j)(tempVec.at(j))(i.key())(0.0);
 
             correctedY[i.key()].push_back(evalPointY);
@@ -236,24 +237,104 @@ void TemperatureCorrection::calculateShifts(){
 
 
     //debugging
-    qDebug()<<"Printing out the corrected X vector\n";
-    qDebug()<<correctedX;
+    //qDebug()<<"Printing out the corrected X vector\n";
+    qDebug()<<correctedX[0];
 
-    qDebug()<<"Printing out the corrected Y vector\n";
-    qDebug()<<correctedY;
+    //qDebug()<<"Printing out the corrected Y vector\n";
+    //qDebug()<<correctedY;
 
 }
 
-QList<double> TemperatureCorrection::wavelengthInterface(double OL, double x){
+std::vector<float> TemperatureCorrection::findWavelengthAndYValue(int OL, float x){
 
     // This is the interface function that determines
     // The input is OL and X and the output should be corrected Y and delta
 
-    //Trying a simple version while I work on getting singlevariablePolynomial imported to this project
+
+    Rigaku::Common::Math::Polynomials::SingleVariablePolynomial wavelengthPoly;
+
+    std::vector<float> XVectorToInterpolate;
+    //std::vector<float> YVectorToInterpolate;
+
+    // Need to extract the correct vector from the container before interpolating
+
+    XVectorToInterpolate=correctedX[OL];
+    //YVectorToInterpolate=correctedY[OL];
 
 
 
+    // Now interpolate the X values
 
+    std::vector<float> interpolatedAndCorrectedX;
+
+    // Testing to find bounds. Find two closest values to x
+    interpolatedAndCorrectedX=findKClosestValue(XVectorToInterpolate,x,2);
+
+
+
+    //TODO this return the actual values but we need to find the indexes of the values as well because
+    // we use the indexes to extract Y and wavelength values
+
+    // Finding index
+
+    //std::vector<float>::iterator vectorIterator=std::find(XVectorToInterpolate.begin(),XVectorToInterpolate.end(),number);
+//    int index;
+//    if(vectorIterator!=XVectorToInterpolate.end()){
+//        qDebug()<<"XVectorToInterpolate contains element"<<endl;
+//        index=std::distance(XVectorToInterpolate.begin(),vectorIterator);
+
+//        qDebug()<<"Index is: "<<index;
+//    }else{
+//        qDebug()<<"XVectorToInterpolate does not contain this element"<<endl;
+//    }
+
+    // Debug
+
+    qDebug()<<interpolatedAndCorrectedX;
+    return interpolatedAndCorrectedX;
+
+}
+
+
+std::vector<float> TemperatureCorrection::findKClosestValue(std::vector<float> unsortedVector, float numberOfInterest, int k){
+    // Given an unsorted vector, find the k closest values to numberOfInterest. "Closest" meaning absolute value distance
+    // TODO: Is this slower or faster than sorting the unsortedVector and then doing a binary search?
+    // This method is O(n Log k) time so it's fast
+
+    std::vector<float> matches;
+
+    // Make a heap of difference with first k elements.
+    priority_queue<pair<float, int> > differenceHeap;
+    for (int i = 0; i < k; i++)
+        differenceHeap.push({ abs(unsortedVector.at(i) - numberOfInterest), i });
+
+    // Now process remaining elements.
+    for (int i = k; i < unsortedVector.size(); i++) {
+
+        float difference = abs(unsortedVector.at(i) - numberOfInterest);
+
+
+
+        // If difference with current element is more than root, then ignore it.
+        if (difference > differenceHeap.top().first)
+            continue;
+
+        // Else remove root and insert
+        differenceHeap.pop();
+        differenceHeap.push({ difference, i });
+
+    }
+
+    // Store contents of heap
+    while (differenceHeap.empty() == false) {
+
+        qDebug() << unsortedVector.at(differenceHeap.top().second) << " ";
+        matches.push_back(unsortedVector.at(differenceHeap.top().second));
+
+        differenceHeap.pop();
+    }
+
+    return matches;
 }
 
 

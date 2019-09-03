@@ -1147,6 +1147,7 @@ inline poly<4, T, std::allocator<T> > monomial(unsigned e, unsigned f, unsigned 
 template<class T>
 inline poly<4, T, std::allocator<T> > monomialVector(std::vector<unsigned> &termVec)
 // Creates a monomial in four indeterminates with vector input.
+// TODO checking vector size so I can overload, or adding size parameter
 {
     unsigned int e = termVec.at(0);
     unsigned int f = termVec.at(1);
