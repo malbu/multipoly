@@ -61,23 +61,6 @@ public:
 
     //Variables
 
-    //Betas from Greger
-    //TODO: create DB interface
-//    std::vector<float> betas{21.9057,      //beta0
-//                              12.7557/1000, //X, b1
-//                              0.2332,       //Y,b2
-//                              2.1753,       //o,b3
-//                              0,            //T,b4
-//                              -0.000014988,  //X^2, b5
-//                              -0.00059408,   //Y^2, b6
-//                              -0.026,        //o^2, b7
-//                              0,            //T^2, b8
-//                              0,
-//                              0,
-//                              0,
-//                              0,
-//                              0,
-//                              0};
 
     std::vector<float> betas;
 

@@ -54,8 +54,10 @@ TemperatureCorrection::TemperatureCorrection()
         // All points must be doubles or floats for unwanted rounding to not occur
 
 
-        //float test=taylorPolynomialX.taylorPolynomial(946.1754)(-162.6883)(16.0)(0.0);
-        //std::cout<<"Test eval: "<<test<<"\n";
+        float test=taylorPolynomialY.taylorPolynomial(-19.0)(-1024.0)(455.6606730301-508.0/2.0)(0.0);
+        //OL X Y Temp
+        //float test=taylorPolynomialY.taylorPolynomial(0.0)(0.0)(455.6606730301)(0.0);
+        std::cout<<"Test eval: "<<test<<"\n";
 
         storePixelandWavelengthOrderTable();
 
@@ -88,11 +90,13 @@ void TemperatureCorrection::retrieveBetas(int id){
             query.exec("SELECT Y from taylorcoefficients WHERE id='1'");
             while(query.next()){
                 betasY.push_back(query.value(0).toFloat());
-                std::cout<<query.value(0).toFloat()<<"\n";
+                //std::cout<<query.value(0).toFloat()<<"\n";
             }
 
         }
 
+        // Close the db
+        db.close();
 
 }
 
@@ -135,7 +139,7 @@ void TemperatureCorrection::storePixelandWavelengthOrderTable(){
 
         // Open the pixel y csv
 
-        QFile pixely_file(QString("./samplePixelPositions.csv"));
+        QFile pixely_file(QString("./YPixelBeforeCorrection.csv"));
 
         if(pixely_file.open(QIODevice::ReadOnly))
             {
@@ -166,7 +170,7 @@ void TemperatureCorrection::storePixelandWavelengthOrderTable(){
         //qDebug()<<pixelY.size(); //45
         //qDebug()<<pixelY[0].size();
 
-        std::vector<float> tempvec;
+        //std::vector<float> tempvec;
 
 //        QMapIterator<int,std::vector<float>> i(pixelY);
 //        std::cout<<"printing the key\n";
@@ -196,13 +200,27 @@ void TemperatureCorrection::calculateShifts(){
     // taylorPolynomialX(X index value for order N)(Y value for order N)(OrderLine)(Temperature)
     // The result of the above operation is in form QMap<order number, vector of 2048 floats>
 
+    // With greger's new data this order is actually
+    // taylorPolynomialX(OrderLine)(X index value for order N)(Y value for order N)(Temperature)
+
 
     // Correction 2. Y shift
     // taylorPolynomialY(X index value for order N)(Y value for order N)(OrderLine)(Temperature)
     // The result of the above operation is in form QMap<order number, vector of 2048 float>
 
+    Rigaku::Common::Math::Polynomials::SingleVariablePolynomial lambdaWRTx;
+
+    Rigaku::Common::Math::Polynomials::SingleVariablePolynomial YWRToldLambda;
+
+
+    vector<float> xPixelInts(2048);
+    std::iota(xPixelInts.begin(),xPixelInts.end(),0);
+
+
     std::vector<float> tempVec;
-    correctedX.clear();
+    xPlusDeltaX.clear();
+    yPlusDeltaY.clear();
+    newWavelength.clear();
     correctedY.clear();
 
     QMapIterator<int,std::vector<float>> i(pixelY);
@@ -211,26 +229,59 @@ void TemperatureCorrection::calculateShifts(){
         i.next();
         tempVec=i.value(); //TODO is this copy needed?
         // Evaluate both model
-        float evalPointX;
-        float evalPointY;
+        float deltaX;
+        float deltaY;
         for(int j=0;j<tempVec.size();j++){
             //std::cout<<tempVec.at(j)<<"\n"; //value
             //std::cout<<j<<"\n";
 
+            float OL=(i.key()*1.0)-OL_mean;
+            float X=j*1.0-X_mean;
+            float Y=tempVec.at(j)*1.0-Y_mean;
+            //Temp isn't used for now
+            float temp=0.0;
+
+
             //Correct X
-            evalPointX=taylorPolynomialX.taylorPolynomial(j*1.0)(tempVec.at(j)*1.0)(i.key()*1.0)(0.0*1.0);
+            deltaX=taylorPolynomialX.taylorPolynomial(j*1.0)(tempVec.at(j)*1.0)(i.key()*1.0)(0.0*1.0);
 
             //qDebug()<<"Printing out evalPointX: "<<evalPointX<<"\n";
 
-            correctedX[i.key()].push_back(evalPointX);
+            xPlusDeltaX[i.key()].push_back(deltaX+j);
 
 
-            //Correct Y
-            evalPointY=taylorPolynomialY.taylorPolynomial(j*1.0)(tempVec.at(j)*1.0)(i.key()*1.0)(0.0*1.0);
+            // Calculate delta Y and add it to original Y
+            deltaY=taylorPolynomialY.taylorPolynomial(OL)(X)(Y)(temp);
             //qDebug()<<"Printing out evalPointY: "<<evalPointY<<"\n";
             //taylorPolynomialX(j)(tempVec.at(j))(i.key())(0.0);
 
-            correctedY[i.key()].push_back(evalPointY);
+            yPlusDeltaY[i.key()].push_back(deltaY+tempVec.at(j));
+        }
+
+        // Now we have to find the polynomial that describes the relationship between the old wavelength
+        // and the new X's
+
+        // ie. rc=(X1, lamba0,5)
+
+        lambdaWRTx.DataFit(xPlusDeltaX[i.key()],wavelength[i.key()],5);
+
+        // Evaluate the polynomial created above
+        // at integer values of X from 0-2047 to get the new wavelengthValues
+        for(int xIndex=0;xIndex<2048;xIndex++){
+                newWavelength[i.key()].push_back(lambdaWRTx.Evaluate(xIndex));
+        }
+
+        // Now we have to find the polynomial that describes Y+deltaY (dependent)
+        // with respect to the old wavelength
+
+        YWRToldLambda.DataFit(wavelength[i.key()],yPlusDeltaY[i.key()],5);
+
+        // Evaluate the polynomial created above to find the corrected Y value
+        // by plugging in the new wavelength values created on line 267
+
+
+        for(int yIndex=0;yIndex<2048;yIndex++){
+                correctedY[i.key()].push_back(YWRToldLambda.Evaluate(newWavelength[i.key()].at(yIndex)));
         }
 
     }
@@ -238,12 +289,14 @@ void TemperatureCorrection::calculateShifts(){
 
     //debugging
     //qDebug()<<"Printing out the corrected X vector\n";
-    qDebug()<<correctedX[0];
+    //qDebug()<<correctedX[0];
 
-    //qDebug()<<"Printing out the corrected Y vector\n";
-    //qDebug()<<correctedY;
+    qDebug()<<"Printing out the corrected Y vector\n";
+    qDebug()<<correctedY;
 
 }
+
+
 
 std::vector<float> TemperatureCorrection::findWavelengthAndYValue(int OL, float x){
 
@@ -253,26 +306,33 @@ std::vector<float> TemperatureCorrection::findWavelengthAndYValue(int OL, float 
 
     Rigaku::Common::Math::Polynomials::SingleVariablePolynomial wavelengthPoly;
 
+
     std::vector<float> XVectorToInterpolate;
     //std::vector<float> YVectorToInterpolate;
 
+    std::vector<float> YandLambda;
+
     // Need to extract the correct vector from the container before interpolating
 
-    XVectorToInterpolate=correctedX[OL];
+    //XVectorToInterpolate=deltaX[OL];
     //YVectorToInterpolate=correctedY[OL];
 
 
 
     // Now interpolate the X values
 
-    std::vector<float> interpolatedAndCorrectedX;
+    std::vector<float> boundaryPointsX;
 
     // Testing to find bounds. Find two closest values to x
-    interpolatedAndCorrectedX=findKClosestValue(XVectorToInterpolate,x,2);
+    boundaryPointsX=findKClosestValue(XVectorToInterpolate,x,2);
+
+    // Debug
+
+    qDebug()<<boundaryPointsX;
 
 
 
-    //TODO this return the actual values but we need to find the indexes of the values as well because
+    // TODO this return the actual values but we need to find the indexes of the values as well because
     // we use the indexes to extract Y and wavelength values
 
     // Finding index
@@ -283,15 +343,21 @@ std::vector<float> TemperatureCorrection::findWavelengthAndYValue(int OL, float 
 //        qDebug()<<"XVectorToInterpolate contains element"<<endl;
 //        index=std::distance(XVectorToInterpolate.begin(),vectorIterator);
 
+          // Use index to return corrected Y value and Wavelength
+            //YandLambda.push_back(correctedY[OL].at(index));
+            //YandLambda.push_back(wavelength[OL].at(index));
+
+
 //        qDebug()<<"Index is: "<<index;
 //    }else{
 //        qDebug()<<"XVectorToInterpolate does not contain this element"<<endl;
 //    }
 
-    // Debug
 
-    qDebug()<<interpolatedAndCorrectedX;
-    return interpolatedAndCorrectedX;
+
+
+
+    return YandLambda;
 
 }
 
@@ -335,6 +401,20 @@ std::vector<float> TemperatureCorrection::findKClosestValue(std::vector<float> u
     }
 
     return matches;
+}
+
+float TemperatureCorrection::interpolatePoint(float x1, float x2, float x){
+    // Linear interpolation between two points x1 and x2 to find x.
+    /*   x1                    x                x2
+       |---------d1------------|-------d2-------|
+       |--------------------d-------------------|
+
+       The fraction is calculated as fraction=d1/d=(x-x1)/(x2-x1)
+   */
+
+    float fraction=(x-x1)/(x2-x1);
+
+    return (x1*(1.0-fraction))+(x2*fraction);
 }
 
 

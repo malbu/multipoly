@@ -86,4 +86,5 @@ HEADERS += \
 DISTFILES += \
     first_test_data.txt \
     samplePixelPositions.csv \
-    sampleWavelengths.csv
+    sampleWavelengths.csv \
+    YPixelBeforeCorrection.csv

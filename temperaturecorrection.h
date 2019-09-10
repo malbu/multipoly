@@ -27,7 +27,7 @@ public:
 
     std::vector<float> findKClosestValue(std::vector<float> unsortedVector, float numberOfInterest, int k);
 
-
+    float interpolatePoint(float x1, float x2, float x);
 
     ComputeTaylor taylorPolynomialX;
     ComputeTaylor taylorPolynomialY;
@@ -46,19 +46,22 @@ public:
     QMap<int, std::vector<pair<float,float>>> unCorrected;
 
     QMap<int,std::vector<float>> wavelength;
+    QMap<int,std::vector<float>> newWavelength;
 
     QMap<int,std::vector<float>> pixelY;
 
 
-    QMap<int,std::vector<float>> correctedX;
+    QMap<int,std::vector<float>> xPlusDeltaX;
+    QMap<int,std::vector<float>> yPlusDeltaY;
+
     QMap<int,std::vector<float>> correctedY;
 
 
     // Variables
 
     float X_mean=2048/2.0;
-    float Y_mean=512/2.0;
-    float OL_mean=21;
+    float Y_mean=508/2.0;
+    float OL_mean=19;
     float temperature_mean=25;
 
 

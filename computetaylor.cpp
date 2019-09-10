@@ -52,7 +52,8 @@ ComputeTaylor::ComputeTaylor()
 
     maxTermExponent=2;
 
-
+    // Close the db
+    db.close();
 
 
 }
@@ -149,9 +150,9 @@ void ComputeTaylor::createPolynomialExpression(std::vector<int> &decimalVector,b
 
     //Print vector for debugging
 
-    //    for (int i=0; i<integerPolynomialExpression.size();i++){
-    //        std::cout<<integerPolynomialExpression.at(i)<<"\n";
-    //    }
+        for (int i=0; i<integerPolynomialExpression.size();i++){
+            std::cout<<integerPolynomialExpression.at(i)<<"\n";
+        }
 
     // Create the model based on the expression
     //createTaylorPolynomial(integerPolynomialExpression);
@@ -216,7 +217,7 @@ void ComputeTaylor::createTaylorPolynomial(){
 
     }
 
-    std::cout<<"Total number of terms is: "<<totalNumberofTerms<<"\n";
+    //std::cout<<"Total number of terms is: "<<totalNumberofTerms<<"\n";
 
     displayTaylorPolynomial();
 
