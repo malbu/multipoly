@@ -54,10 +54,13 @@ TemperatureCorrection::TemperatureCorrection()
         // All points must be doubles or floats for unwanted rounding to not occur
 
 
-        float test=taylorPolynomialY.taylorPolynomial(-19.0)(-1024.0)(455.6606730301-508.0/2.0)(0.0);
+        //float test=taylorPolynomialY.taylorPolynomial(-19.0)(-1024.0)(455.6606730301-508.0/2.0)(0.0);
         //OL X Y Temp
-        //float test=taylorPolynomialY.taylorPolynomial(0.0)(0.0)(455.6606730301)(0.0);
-        std::cout<<"Test eval: "<<test<<"\n";
+        //float testy=taylorPolynomialY.taylorPolynomial(-20.0)(-1024.0)(455.6606730301-508.0/2.0)(0.0);
+        float testy=taylorPolynomialY.taylorPolynomial(-19.0)(-1024.0)(455.6606730301-508.0/2.0)(0.0);
+        float testx=taylorPolynomialX.taylorPolynomial(-19.0)(-1024.0)(455.6606730301-508.0/2.0)(0.0);
+        std::cout<<"Test eval Y: "<<testy<<"\n";
+        std::cout<<"Test eval X: "<<testx<<"\n";
 
         storePixelandWavelengthOrderTable();
 
@@ -185,7 +188,8 @@ void TemperatureCorrection::storePixelandWavelengthOrderTable(){
 
 //        }
 
-        calculateShifts();
+
+        //calculateShifts();
 
 
 }
@@ -213,8 +217,8 @@ void TemperatureCorrection::calculateShifts(){
     Rigaku::Common::Math::Polynomials::SingleVariablePolynomial YWRToldLambda;
 
 
-    vector<float> xPixelInts(2048);
-    std::iota(xPixelInts.begin(),xPixelInts.end(),0);
+    //vector<float> xPixelInts(2048);
+    //std::iota(xPixelInts.begin(),xPixelInts.end(),0);
 
 
     std::vector<float> tempVec;
@@ -228,22 +232,23 @@ void TemperatureCorrection::calculateShifts(){
     while(i.hasNext()){
         i.next();
         tempVec=i.value(); //TODO is this copy needed?
-        // Evaluate both model
+        // Evaluate both Taylor polynomials
         float deltaX;
         float deltaY;
         for(int j=0;j<tempVec.size();j++){
             //std::cout<<tempVec.at(j)<<"\n"; //value
             //std::cout<<j<<"\n";
 
+            // Subtracting the mean
             float OL=(i.key()*1.0)-OL_mean;
             float X=j*1.0-X_mean;
             float Y=tempVec.at(j)*1.0-Y_mean;
             //Temp isn't used for now
-            float temp=0.0;
+            float T=0.0;
 
 
             //Correct X
-            deltaX=taylorPolynomialX.taylorPolynomial(j*1.0)(tempVec.at(j)*1.0)(i.key()*1.0)(0.0*1.0);
+            deltaX=taylorPolynomialX.taylorPolynomial(OL)(X)(Y)(T);
 
             //qDebug()<<"Printing out evalPointX: "<<evalPointX<<"\n";
 
@@ -251,7 +256,7 @@ void TemperatureCorrection::calculateShifts(){
 
 
             // Calculate delta Y and add it to original Y
-            deltaY=taylorPolynomialY.taylorPolynomial(OL)(X)(Y)(temp);
+            deltaY=taylorPolynomialY.taylorPolynomial(OL)(X)(Y)(T);
             //qDebug()<<"Printing out evalPointY: "<<evalPointY<<"\n";
             //taylorPolynomialX(j)(tempVec.at(j))(i.key())(0.0);
 
@@ -296,6 +301,10 @@ void TemperatureCorrection::calculateShifts(){
 
 }
 
+
+void TemperatureCorrection::printCSV(){
+
+}
 
 
 std::vector<float> TemperatureCorrection::findWavelengthAndYValue(int OL, float x){

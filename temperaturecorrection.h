@@ -27,6 +27,8 @@ public:
 
     std::vector<float> findKClosestValue(std::vector<float> unsortedVector, float numberOfInterest, int k);
 
+    void printCSV();
+
     float interpolatePoint(float x1, float x2, float x);
 
     ComputeTaylor taylorPolynomialX;
@@ -61,7 +63,7 @@ public:
 
     float X_mean=2048/2.0;
     float Y_mean=508/2.0;
-    float OL_mean=19;
+    float OL_mean=20;
     float temperature_mean=25;
 
 
