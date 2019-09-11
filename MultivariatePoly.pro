@@ -81,7 +81,8 @@ HEADERS += \
     $$PWD/../workspace/katana/starlight2/katana/shared/common/infixOstreamIterator.h \
     $$PWD/../workspace/katana/starlight2/katana/shared/common/stringUtilities.h \
     $$PWD/../workspace/katana/starlight2/katana/shared/3rdParty/lapack/polyfit.h \
-    $$PWD/../workspace/katana/starlight2/katana/shared/3rdParty/lapack/expfit.h
+    $$PWD/../workspace/katana/starlight2/katana/shared/3rdParty/lapack/expfit.h \
+    spline.h
 
 DISTFILES += \
     first_test_data.txt \

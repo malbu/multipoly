@@ -31,6 +31,8 @@ public:
 
     float interpolatePoint(float x1, float x2, float x);
 
+    std::vector<float> calculateMeanAndStDev(std::vector<float> inputVector);
+
     ComputeTaylor taylorPolynomialX;
     ComputeTaylor taylorPolynomialY;
 
@@ -61,9 +63,9 @@ public:
 
     // Variables
 
-    float X_mean=2048/2.0;
-    float Y_mean=508/2.0;
-    float OL_mean=20;
+    float X_mean=2048.0/2.0;
+    float Y_mean=508.0/2.0;
+    float OL_mean=20.0;
     float temperature_mean=25;
 
 

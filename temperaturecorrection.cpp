@@ -9,6 +9,7 @@
 #include <QDebug>
 #include "common/math/polynomials/singleVariablePolynomial.h"
 #include <queue>
+#include "spline.h"
 
 TemperatureCorrection::TemperatureCorrection()
 {
@@ -189,7 +190,7 @@ void TemperatureCorrection::storePixelandWavelengthOrderTable(){
 //        }
 
 
-        //calculateShifts();
+        calculateShifts();
 
 
 }
@@ -248,7 +249,7 @@ void TemperatureCorrection::calculateShifts(){
 
 
             //Correct X
-            deltaX=taylorPolynomialX.taylorPolynomial(OL)(X)(Y)(T);
+            deltaX=taylorPolynomialX.taylorPolynomial(float(OL))(float(X))(float(Y))(float(T));
 
             //qDebug()<<"Printing out evalPointX: "<<evalPointX<<"\n";
 
@@ -279,14 +280,48 @@ void TemperatureCorrection::calculateShifts(){
         // Now we have to find the polynomial that describes Y+deltaY (dependent)
         // with respect to the old wavelength
 
-        YWRToldLambda.DataFit(wavelength[i.key()],yPlusDeltaY[i.key()],5);
+        // The issue here is that this particular set of data needs to be conditioned to
+        // allow for a better fit. We condition each element by subtracting the mean of the vector
+        // and dividing by the standard deviation.
+        //std::vector<float> conditionedyPlusDeltaY;
+        //conditionedyPlusDeltaY=calculateMeanAndStDev(yPlusDeltaY[i.key()]);
+
+        //YWRToldLambda.DataFit(wavelength[i.key()],conditionedyPlusDeltaY,12);
+
+        //YWRToldLambda.DataFit(wavelength[i.key()],yPlusDeltaY[i.key()],13);
+
+        // Convert to double
+        // TODO: remove this if you convert everything to double precision
+        std::vector<double> wavelengthSpline(wavelength[i.key()].begin(),wavelength[i.key()].end());
+        std::vector<double> yPlusDeltaYSpline(yPlusDeltaY[i.key()].begin(),yPlusDeltaY[i.key()].end());
+
+        // Trying splines instead
+
+        tk::spline YWRToldLambdaSpline;
+
+        YWRToldLambdaSpline.set_points(wavelengthSpline,yPlusDeltaYSpline);
 
         // Evaluate the polynomial created above to find the corrected Y value
         // by plugging in the new wavelength values created on line 267
 
+        // We also have to condition this step
+
+        //std::vector<float> conditionedNewWavelength;
+
+        //conditionedNewWavelength=calculateMeanAndStDev(newWavelength[i.key()]);
 
         for(int yIndex=0;yIndex<2048;yIndex++){
-                correctedY[i.key()].push_back(YWRToldLambda.Evaluate(newWavelength[i.key()].at(yIndex)));
+                // Unconditioned
+                //correctedY[i.key()].push_back(YWRToldLambda.Evaluate(newWavelength[i.key()].at(yIndex)));
+
+                // Conditioned
+                //correctedY[i.key()].push_back(YWRToldLambda.Evaluate(conditionedNewWavelength.at(yIndex)));
+
+                // Evaluating with splines instead
+
+                double evalUsingSpline=YWRToldLambdaSpline(newWavelength[i.key()].at(yIndex));
+                correctedY[i.key()].push_back(evalUsingSpline);
+
         }
 
     }
@@ -297,13 +332,45 @@ void TemperatureCorrection::calculateShifts(){
     //qDebug()<<correctedX[0];
 
     qDebug()<<"Printing out the corrected Y vector\n";
-    qDebug()<<correctedY;
+    qDebug()<<correctedY[5];
+
+    //printCSV();
 
 }
 
 
 void TemperatureCorrection::printCSV(){
+    QFile out_file(QString("./out_file.csv"));
+    if (out_file.open(QFile::ReadWrite)) {
+        QTextStream stream(&out_file);
+        for (int j=0;j<correctedY[0].size();j++) {
+            for(int i=0;i<correctedY.size();i++){
+                stream<<correctedY[i].at(j)<<",";
+            }
+            stream<<endl;
+        }
+    }
+   out_file.close();
+}
 
+std::vector<float> TemperatureCorrection::calculateMeanAndStDev(std::vector<float> inputVector){
+
+    float sum=std::accumulate(inputVector.begin(),inputVector.end(),0);
+    float mean=sum/inputVector.size();
+
+    float squareSum = std::inner_product(inputVector.begin(), inputVector.end(), inputVector.begin(), 0.0);
+
+    float stDev=sqrt(squareSum / inputVector.size() - mean * mean);
+
+    std::vector<float> conditionedVector;
+
+    for(int i=0; i<inputVector.size();i++){
+        // Condition each value in vector
+        // (x-mean)/stdev
+
+        conditionedVector.push_back((inputVector.at(i)-mean)/stDev);
+    }
+    return conditionedVector;
 }
 
 
