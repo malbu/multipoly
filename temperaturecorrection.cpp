@@ -334,7 +334,7 @@ void TemperatureCorrection::calculateShifts(){
     qDebug()<<"Printing out the corrected Y vector\n";
     qDebug()<<correctedY[5];
 
-    //printCSV();
+    printCSV();
 
 }
 

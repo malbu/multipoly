@@ -65,7 +65,7 @@ public:
 
     float X_mean=2048.0/2.0;
     float Y_mean=508.0/2.0;
-    float OL_mean=20.0;
+    float OL_mean=19.0;
     float temperature_mean=25;
 
 
