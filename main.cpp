@@ -28,5 +28,27 @@ int main(int argc, char *argv[])
 
     std::cout<<"\nCompleted in: "<<timer.nsecsElapsed()<<" ns\n";
 
+    //Testing the interface function
+    // Ask user for OL and X
+
+    int OL;
+    int x;
+
+    std::cout<<"Enter an OL"<<std::endl;
+    std::cin>>OL;
+
+    std::cout<<"Enter a corrected X value"<<std::endl;
+
+    std::cin>>x;
+
+    std::vector<float> interfaceOutput;
+
+    interfaceOutput=correction.findWavelengthAndYValue(OL,x);
+
+    qDebug()<<"Printing corrected Y and corrected Wavelength"<<endl;
+    qDebug()<<interfaceOutput<<endl;
+
+
+
     return a.exec();
 }

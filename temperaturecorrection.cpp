@@ -30,6 +30,7 @@ TemperatureCorrection::TemperatureCorrection()
 
 
 
+
     // Commence Step 1.
     // TODO this only needs to be done once ideally
     // TODO all these functions should tell you if the previous steps
@@ -40,7 +41,7 @@ TemperatureCorrection::TemperatureCorrection()
 
     // Step 2.
 
-    //Retrieve model specific betas
+    //Retrieve model specific betas from database (toy db for now)
     retrieveBetas(1);
 
     // Create Taylor polynomial for X
@@ -358,32 +359,15 @@ std::vector<float> TemperatureCorrection::findWavelengthAndYValue(int OL, float 
     // This is the interface function that determines
     // The input is OL and X and the output should be corrected Y and delta
 
-
-
-    std::vector<float> XVectorToInterpolate;
-    //std::vector<float> YVectorToInterpolate;
-
+    // Returned vector is in format
+    // [Corrected Y, Corrected wavelength]
     std::vector<float> YandLambda;
 
-    // Need to extract the correct vector from the container before interpolating
+    // Retrieve Y value at index X and push it
+    YandLambda.push_back(correctedY[OL].at(x));
 
-    //XVectorToInterpolate=deltaX[OL];
-    //YVectorToInterpolate=correctedY[OL];
-
-
-
-    // Now interpolate the X values
-
-    std::vector<float> boundaryPointsX;
-
-    // Testing to find bounds. Find two closest values to x
-    boundaryPointsX=findKClosestValue(XVectorToInterpolate,x,2);
-
-    // Debug
-
-    qDebug()<<boundaryPointsX;
-
-
+    // Retrieve Wavelength value at index x and push it
+    YandLambda.push_back(newWavelength[OL].at(x));
 
 
 
