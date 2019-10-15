@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
     int OL;
     int x;
 
+    while(true){
+
     std::cout<<"Enter an OL"<<std::endl;
     std::cin>>OL;
 
@@ -41,12 +43,14 @@ int main(int argc, char *argv[])
 
     std::cin>>x;
 
-    std::vector<float> interfaceOutput;
+    std::vector<double> interfaceOutput;
 
-    interfaceOutput=correction.findWavelengthAndYValue(OL,x);
+    interfaceOutput=correction.findCorrectedWavelengthAndYValue(OL,x);
 
     qDebug()<<"Printing corrected Y and corrected Wavelength"<<endl;
     qDebug()<<interfaceOutput<<endl;
+
+     }
 
 
 

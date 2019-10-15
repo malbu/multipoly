@@ -23,23 +23,25 @@ public:
     void storePixelandWavelengthOrderTable();
     void retrieveBetas(int id);
     void calculateShifts();
-    std::vector<float> findWavelengthAndYValue(int OL, float x);
+    std::vector<double> findCorrectedWavelengthAndYValue(int OL, double x);
 
-    std::vector<float> findKClosestValue(std::vector<float> unsortedVector, float numberOfInterest, int k);
+    std::vector<double> findKClosestValue(std::vector<double> unsortedVector, double numberOfInterest, int k);
 
     void printCSV();
 
-    float interpolatePoint(float x1, float x2, float x);
+    double interpolatePoint(double x1, double x2, double x);
 
-    std::vector<float> calculateMeanAndStDev(std::vector<float> inputVector);
+    std::vector<double> calculateMeanAndStDev(std::vector<double> inputVector);
+
+    void truncateData(int numberofPointstoCutfromSides);
 
     ComputeTaylor taylorPolynomialX;
     ComputeTaylor taylorPolynomialY;
 
 
 
-    std::vector<float> betasX;
-    std::vector<float> betasY;
+    std::vector<double> betasX;
+    std::vector<double> betasY;
 
 
 
@@ -47,26 +49,27 @@ public:
 
     //Storage container in the form
     //QMap<order,vector<pair<Yvalue,Wavelength>>
-    QMap<int, std::vector<pair<float,float>>> unCorrected;
+    QMap<int, std::vector<pair<double,double>>> unCorrected;
 
-    QMap<int,std::vector<float>> wavelength;
-    QMap<int,std::vector<float>> newWavelength;
+    QMap<int,std::vector<double>> wavelength;
+    QMap<int,std::vector<double>> newWavelength;
 
-    QMap<int,std::vector<float>> pixelY;
+    QMap<int,std::vector<double>> pixelY;
 
 
-    QMap<int,std::vector<float>> xPlusDeltaX;
-    QMap<int,std::vector<float>> yPlusDeltaY;
+    QMap<int,std::vector<double>> xPlusDeltaX;
+    QMap<int,std::vector<double>> yPlusDeltaY;
 
-    QMap<int,std::vector<float>> correctedY;
+    QMap<int,std::vector<double>> correctedY;
+    QMap<int,std::vector<double>> splineCheckMap;
 
 
     // Variables
 
-    float X_mean=2048.0/2.0;
-    float Y_mean=508.0/2.0;
-    float OL_mean=19.0;
-    float temperature_mean=25;
+    double X_mean=(2048.0/2.0)-1.0;
+    double Y_mean=(508.0/2.0)-1.0;
+    double OL_mean=19.0;
+    double temperature_mean=31.1843;
 
 
 };

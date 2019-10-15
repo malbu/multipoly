@@ -48,7 +48,7 @@ public:
 
     void createPolynomialExpression(std::vector<int> &decimalVector,bool includeNonBasisTerms=true);
 
-    std::vector<float> applyModelToOrder(std::vector<std::vector<float>> &orderVector);
+    std::vector<double> applyModelToOrder(std::vector<std::vector<double>> &orderVector);
 
     bool displayTaylorPolynomial();
 
@@ -56,19 +56,19 @@ public:
 
     void initTaylorPoly();
 
-    bool updateBeta(std::vector<float> beta);
+    bool updateBeta(std::vector<double> beta);
 
 
     //Variables
 
 
-    std::vector<float> betas;
+    std::vector<double> betas;
 
 
-    std::vector<float> correctedOrderline;
+    std::vector<double> correctedOrderline;
 
 
-    poly<4,float> taylorPolynomial;
+    poly<4,double> taylorPolynomial;
 
     int numberOfIndeterminates;
 
