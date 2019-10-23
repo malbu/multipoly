@@ -11,6 +11,8 @@
 #include <queue>
 #include "spline.h"
 
+#include "alglib/interpolation.h"
+
 TemperatureCorrection::TemperatureCorrection()
 {
     // Create a Taylor polynomial
@@ -301,11 +303,11 @@ void TemperatureCorrection::calculateShifts(){
             double X=j*1.0-X_mean;
             double Y=tempVec.at(j)*1.0-Y_mean;
             //Temp isn't used for now
-            double T=35-temperature_mean;
+            double T=30-temperature_mean;
 
 
             // Calculate the X shift (deltaX) and add it to the original X
-            deltaX=taylorPolynomialX.taylorPolynomial(double(OL))(double(X))(double(Y))(double(T));
+            deltaX=taylorPolynomialX.taylorPolynomial(double(0.0))(double(X))(double(Y))(double(T));
 
             //qDebug()<<"Printing out evalPointX: "<<evalPointX<<"\n";
 
@@ -313,7 +315,7 @@ void TemperatureCorrection::calculateShifts(){
 
 
             // Calculate the Y shift (deltaY) and add it to original Y
-            deltaY=taylorPolynomialY.taylorPolynomial(double(OL))(double(X))(double(Y))(double(T));
+            deltaY=taylorPolynomialY.taylorPolynomial(double(0.0))(double(X))(double(Y))(double(T));
             //qDebug()<<"Printing out evalPointY: "<<evalPointY<<"\n";
             //taylorPolynomialX(j)(tempVec.at(j))(i.key())(0.0);
 
@@ -328,17 +330,42 @@ void TemperatureCorrection::calculateShifts(){
         std::vector<double> wavelengthSpline(wavelength[i.key()].begin(),wavelength[i.key()].end());
         std::vector<double> xPlusDeltaXSpline(xPlusDeltaX[i.key()].begin(),xPlusDeltaX[i.key()].end());
 
+
+        //Alglib uses custom arrays
+        alglib::real_1d_array wavelengthSplineAlglib;
+        alglib::real_1d_array xPlusDeltaXSplineAlglib;
+
+        wavelengthSplineAlglib.setcontent(wavelengthSpline.size(),&(wavelengthSpline[0]));
+        xPlusDeltaXSplineAlglib.setcontent(xPlusDeltaXSpline.size(),&(xPlusDeltaXSpline[0]));
+
+
+        //using TK spline library
         tk::spline lambdaWRTxSpline;
 
         lambdaWRTxSpline.set_points(xPlusDeltaXSpline,wavelengthSpline);
+
+
+        //using Alglib spline library
+
+        alglib::spline1dinterpolant spline;
+
+        int naturalBoundType=2;
+
+        alglib::spline1dbuildcubic(xPlusDeltaXSplineAlglib,wavelengthSplineAlglib,wavelengthSpline.size(),naturalBoundType,0.0,naturalBoundType,0.0,spline);
+
+
 
         //lambdaWRTx.DataFit(xPlusDeltaX[i.key()],wavelength[i.key()],5);
 
         // Evaluate the polynomial created above
         // at integer values of X from 0-2047 to get the new wavelengthValues
         for(int xIndex=0;xIndex<2048;xIndex++){
+            //5th order poly
             //newWavelength[i.key()].push_back(lambdaWRTx.Evaluate(xIndex));
-            newWavelength[i.key()].push_back(lambdaWRTxSpline(xIndex));
+            //tk spline
+            //newWavelength[i.key()].push_back(lambdaWRTxSpline(xIndex));
+            //alglib spline
+            newWavelength[i.key()].push_back(alglib::spline1dcalc(spline,xIndex));
         }
 
         // Now we have to find the equation that describes Y+deltaY (dependent)
@@ -358,6 +385,24 @@ void TemperatureCorrection::calculateShifts(){
 
         YWRToldLambdaSpline.set_points(wavelengthSpline,yPlusDeltaYSpline);
 
+
+        // Alglib splines
+        // Alglib uses custom arrays
+        alglib::real_1d_array yPlusDeltaYSplineAlglib;
+
+        yPlusDeltaYSplineAlglib.setcontent(yPlusDeltaYSpline.size(),&(yPlusDeltaYSpline[0]));
+
+
+        alglib::spline1dinterpolant spline2;
+
+        // Alglib cubic spline
+
+       //alglib::spline1dbuildcubic(wavelengthSplineAlglib,yPlusDeltaYSplineAlglib,wavelengthSpline.size(),naturalBoundType,0.0,naturalBoundType,0.0,spline2);
+
+       alglib::spline1dbuildmonotone(wavelengthSplineAlglib,yPlusDeltaYSplineAlglib,wavelengthSpline.size(),spline2);
+
+
+
         // Evaluate the polynomial created above to find the corrected Y value
         // by plugging in the new wavelength values created on line 267
 
@@ -365,8 +410,12 @@ void TemperatureCorrection::calculateShifts(){
         for(int yIndex=0;yIndex<2048;yIndex++){
 
             // Evaluating with splines
+            // Tk
+            //double evalUsingSpline=YWRToldLambdaSpline(newWavelength[i.key()].at(yIndex));
 
-            double evalUsingSpline=YWRToldLambdaSpline(newWavelength[i.key()].at(yIndex));
+            double evalUsingSpline=alglib::spline1dcalc(spline2,newWavelength[i.key()].at(yIndex));
+
+
             double splineCheck=YWRToldLambdaSpline(wavelengthSpline.at(yIndex));
             correctedY[i.key()].push_back(evalUsingSpline);
             splineCheckMap[i.key()].push_back(splineCheck);
